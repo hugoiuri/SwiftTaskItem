@@ -69,12 +69,28 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
     }
     
-    func updateItem() {
-        
+    func updateItem(id: Int?, index: Int, callback: @escaping () -> Void) {
+        todoRepository.toggleComplete(id: id ?? 0) { (result) in
+            switch result {
+            case.success:
+                self.items[index].isCompleted.toggle()
+            case .error:
+                print("Error to delete task")
+            }
+            callback()
+        }
     }
     
-    func removeItem() {
-        
+    func removeItem(id: Int?, index: Int, callback: @escaping () -> Void) {
+        todoRepository.delete(id: id ?? 0) { (result) in
+            switch result {
+            case.success:
+                self.items.remove(at: index)
+            case .error:
+                print("Error to delete task")
+            }
+            callback()
+        }
     }
     
     override func viewDidLoad() {
@@ -95,9 +111,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             style: .destructive,
             title: "Remover",
             handler: { (action, view, completionHandler) in
-                self.items.remove(at: indexPath.row)
-                tableView.reloadData()
-                completionHandler(true)
+                self.removeItem(id: self.items[indexPath.row].id, index: indexPath.row) {
+                    tableView.reloadData()
+                    completionHandler(true)
+                }
+//                self.items.remove(at: indexPath.row)
+//                tableView.reloadData()
+//                completionHandler(true)
         })
         
         let swipeConfiguration = UISwipeActionsConfiguration(actions: [removeAction])
@@ -109,9 +129,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             style: .normal,
             title: "Concluir",
             handler: { (action, view, completionHandler) in
-                self.items[indexPath.row].isCompleted.toggle()
-                tableView.reloadData()
-                completionHandler(true)
+                self.updateItem(id: self.items[indexPath.row].id, index: indexPath.row) {
+                    tableView.reloadData()
+                    completionHandler(true)
+                }
+//                self.items[indexPath.row].isCompleted.toggle()
+//                tableView.reloadData()
+//                completionHandler(true)
         })
         
         let swipeConfiguration = UISwipeActionsConfiguration(actions: [concludeAction])
